@@ -167,6 +167,23 @@ abstract class Addons
 
         return $config;
     }
+	
+	   /**
+     * 设置插件信息数据
+     * @param $name
+     * @param array $value
+     * @return array
+     */
+    final public function setInfo($name = '', $value = [])
+    {
+        if (empty($name)) {
+            $name = $this->getName();
+        }
+        $info = $this->getInfo($name);
+        $info = array_merge($info, $value);
+        Config::set($info,$name);
+        return $info;
+    }
 
     //必须实现安装
     abstract public function install();
