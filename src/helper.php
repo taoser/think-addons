@@ -10,6 +10,7 @@ use think\facade\Cache;
 use think\helper\{
     Str, Arr
 };
+use Symfony\Component\VarExporter\VarExporter;
 
 \think\Console::starting(function (\think\Console $console) {
     $console->addCommands([
@@ -210,7 +211,7 @@ if (!function_exists('set_addons_config')) {
             throw new \Exception(lang("addons.php File does not have write permission"));
         }
         if ($handle = fopen($file, 'w')) {
-            fwrite($handle, "<?php\n\n" . "return " . var_export($array, TRUE) . ";");
+            fwrite($handle, "<?php\n\n" . "return " . VarExporter::export($array) . ";\n");
             fclose($handle);
         } else {
             throw new Exception(lang("File does not have write permission"));
