@@ -39,9 +39,9 @@ abstract class Addons
         $this->addon_path = $app->addons->getAddonsPath() . $this->name . DIRECTORY_SEPARATOR;
         $this->addon_config = "addon_{$this->name}_config";
         $this->addon_info = "addon_{$this->name}_info";
-        $this->view = clone View::engine('Think');
+        $this->view = View::engine('Think');
         $this->view->config([
-            'view_path' => $this->addon_path . 'view'
+            'view_path' => (php_uname('s') == 'Linux') ? $this->addon_path . 'view' . DIRECTORY_SEPARATOR : $this->addon_path . 'view'
         ]);
 
         // 控制器初始化
@@ -98,6 +98,7 @@ abstract class Addons
      */
     protected function assign($name, $value = '')
     {
+
         if (is_array($name)) {
             $this->view->assign($name);
         } else {
@@ -171,8 +172,8 @@ abstract class Addons
 
         return $config;
     }
-	
-	   /**
+
+    /**
      * 设置插件信息数据
      * @param $name
      * @param array $value
