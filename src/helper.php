@@ -24,8 +24,10 @@ define('DS', DIRECTORY_SEPARATOR);
 spl_autoload_register(function ($class) {
 
     $class = ltrim($class, '\\');
-
-    $dir = App::getRootPath();
+    
+    //$dir = App::getRootPath();
+    $root_path = str_replace('\\','/', dirname(__DIR__));
+    $dir = strstr($root_path, 'vendor', true);
     $namespace = 'addons';
 
     if (strpos($class, $namespace) === 0) {
@@ -127,6 +129,10 @@ if (!function_exists('get_addons_class')) {
         switch ($type) {
             case 'controller':
                 $namespace = '\\addons\\' . $name . '\\controller\\' . $class;
+                // 匹配空控制器
+                if (!class_exists($namespace)) {
+                    $namespace = '\\addons\\' . $name . '\\controller\\' . config('route.empty_controller');
+                }
                 break;
             default:
                 $namespace = '\\addons\\' . $name . '\\Plugin';
@@ -145,9 +151,10 @@ if (!function_exists('addons_url')) {
      * @param bool|string $domain 域名
      * @return bool|string
      */
-    function addons_url($url = '', $param = [], $suffix = true, $domain = false)
+    function addons_url($url = '', $param = [], $suffix = false, $domain = false)
     {
         $request = app('request');
+        
         if (empty($url)) {
             // 生成 url 模板变量
             $addons = $request->addon;
@@ -157,6 +164,7 @@ if (!function_exists('addons_url')) {
         } else {
             $url = Str::studly($url);
             $url = parse_url($url);
+            
             if (isset($url['scheme'])) {
                 $addons = strtolower($url['scheme']);
                 $controller = $url['host'];
@@ -176,7 +184,7 @@ if (!function_exists('addons_url')) {
             }
         }
 
-        return Route::buildUrl("@addons/{$addons}/{$controller}/{$action}", $param)->suffix($suffix)->domain($domain);
+        return Route::buildUrl("/app/{$addons}/{$controller}/{$action}", $param)->suffix($suffix)->domain($domain);
     }
 }
 
@@ -200,14 +208,16 @@ if (!function_exists('set_addons_info')) {
         if (!isset($array['name']) || !isset($array['title']) || !isset($array['version'])) {
             throw new Exception("Failed to write plugin config");
         }
-        $res = array();
+        $res = [];
         foreach ($array as $key => $val) {
             if (is_array($val)) {
                 $res[] = "[$key]";
                 foreach ($val as $k => $v)
-                    $res[] = "$k = " . (is_numeric($v) ? $v : $v);
-            } else
-                $res[] = "$key = " . (is_numeric($val) ? $val : $val);
+                    $res[] = "$k = " . (is_float($val) ? sprintf("%.1f",$val) : $v);
+            } else {
+                //$res[] = "$key = " . (is_numeric($val) ? $val : $val);
+                $res[] = "$key = " . (is_float($val) ? sprintf("%.1f",$val) : $val);
+            } 
         }
 
         if ($handle = fopen($file, 'w')) {
@@ -309,7 +319,7 @@ if (!function_exists('get_addons_list')) {
                 $info = get_addons_info($name);
                 if (!isset($info['name']))
                     continue;
-                $info['url'] =isset($info['url']) && $info['url'] ?(string)addons_url($info['url']):'';
+                //$info['url'] =isset($info['url']) && $info['url'] ?(string)addons_url($info['url']):'';
                 $list[$name] = $info;
             }
             Cache::set('addonslist', $list);
@@ -317,4 +327,29 @@ if (!function_exists('get_addons_list')) {
         return $list;
     }
 
+}
+
+if (!function_exists('getAddonsConfig')) {
+    /**
+     * 获取插件配置
+     *
+     * @param string $name 插件名
+     * @param boolean $type 是否获取原始数据
+     * @return void
+     */
+    function getAddonsConfig(string $name, bool $type = false) {
+        $config = [];
+        $config_file = root_path() . 'addons' .  DIRECTORY_SEPARATOR . $name . DIRECTORY_SEPARATOR .  'config.php';
+        if (is_file($config_file)) {
+            $temp_arr = (array)include $config_file;
+            if ($type) {
+                return $temp_arr;
+            }
+            foreach ($temp_arr as $key => $value) {
+                $config[$key] = $value['value'];
+            }
+            unset($temp_arr);
+        }
+        return $config;
+    }
 }

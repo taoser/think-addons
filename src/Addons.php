@@ -8,6 +8,9 @@ use think\App;
 use think\helper\Str;
 use think\facade\Config;
 use think\facade\View;
+use think\facade\Cache;
+use think\facade\Db;
+use think\facade\Template;
 
 abstract class Addons
 {
@@ -25,6 +28,8 @@ abstract class Addons
     protected $addon_config;
     // 插件信息
     protected $addon_info;
+    // 预先加载的标签库
+    protected $taglib_pre_load = '';
 
     /**
      * 插件构造函数
@@ -36,12 +41,18 @@ abstract class Addons
         $this->app = $app;
         $this->request = $app->request;
         $this->name = $this->getName();
-        $this->addon_path = $app->addons->getAddonsPath() . $this->name . DIRECTORY_SEPARATOR;
+        $this->addon_path = $this->app->addons->getAddonsPath() . $this->name . DIRECTORY_SEPARATOR;
         $this->addon_config = "addon_{$this->name}_config";
         $this->addon_info = "addon_{$this->name}_info";
+        // $this->taglib_pre_load = $this->getTagLib();
+        // $this->view = clone View::engine('Taoler');
         $this->view = clone View::engine('Think');
         $this->view->config([
-            'view_path' => $this->addon_path . 'view'
+            'strip_space'   => true, // 去除空格和换行
+            // 'view_path'     => $this->addon_path . 'view' . DIRECTORY_SEPARATOR . 'plugin' . DIRECTORY_SEPARATOR,
+            'view_path'     => $this->addon_path . 'view' . DIRECTORY_SEPARATOR,
+            'view_dir_name' => 'view',
+            // 'taglib_pre_load'   => $this->taglib_pre_load
         ]);
 
         // 控制器初始化
@@ -74,7 +85,8 @@ abstract class Addons
      */
     protected function fetch($template = '', $vars = [])
     {
-        return $this->view->fetch(DIRECTORY_SEPARATOR . $template, $vars);
+        // addons 插件视图此处必须加路径前缀/
+        return $this->view->fetch('/' . $template, $vars);
     }
 
     /**
@@ -98,6 +110,7 @@ abstract class Addons
      */
     protected function assign($name, $value = '')
     {
+
         if (is_array($name)) {
             $this->view->assign($name);
         } else {
@@ -120,6 +133,26 @@ abstract class Addons
         return $this;
     }
 
+    // 获取插件下标签 addons/taglib文件
+    protected function getTagLib() {
+        return Cache::remember('addon_taglib', function(){
+            $tagsArr = [];
+            $addonsPath = $this->app->addons->getAddonsPath();
+            
+            foreach (scandir($addonsPath) as $name) {
+                if (in_array($name, ['.', '..'])) continue;
+                $taglibDir = $addonsPath . $name . DIRECTORY_SEPARATOR . 'taglib';
+                if (!is_dir($taglibDir)) continue;
+                
+                foreach (glob($taglibDir . '/*.php') as $file) {
+                    $className = pathinfo($file, PATHINFO_FILENAME);
+                    $tagsArr[] = "\\addons\\{$name}\\taglib\\{$className}";
+                }
+            }
+            return implode(',', $tagsArr);
+        }, 3600); // 添加过期时间
+    }
+
     /**
      * 插件基础信息
      * @return array
@@ -136,7 +169,7 @@ abstract class Addons
         // 文件配置
         $info_file = $this->addon_path . 'info.ini';
         if (is_file($info_file)) {
-            $_info = parse_ini_file($info_file, true, INI_SCANNER_TYPED) ?: [];
+            $_info = parse_ini_file($info_file, true, INI_SCANNER_RAW) ?: [];
             $_info['url'] = addons_url();
             $info = array_merge($_info, $info);
         }
@@ -163,7 +196,12 @@ abstract class Addons
                 return $temp_arr;
             }
             foreach ($temp_arr as $key => $value) {
-                $config[$key] = $value['value'];
+                if(isset($value['value'])) {
+                    $config[$key] = $value['value'];
+                } else {
+                    $config[$key] = $value;
+                }
+                
             }
             unset($temp_arr);
         }
@@ -180,7 +218,7 @@ abstract class Addons
      */
     final public function setInfo($name = '', $value = [])
     {
-        if (empty($name)) {
+        if(empty($name)) {
             $name = $this->getName();
         }
         $info = $this->getInfo($name);
@@ -194,4 +232,68 @@ abstract class Addons
 
     //必须卸载插件方法
     abstract public function uninstall();
+
+    // 在 Addons.php 中补充
+    abstract public function enabled();   // 启用插件
+
+    abstract public function disabled();  // 禁用插件
+
+    // 写入管理位
+    protected function insert(array $hooks = []) {
+
+        $methods = (array)get_class_methods("\\addons\\" . $this->name . "\\Plugin");
+        if(!empty($hooks)) {
+            foreach($hooks as $k => $v) {
+                // 添加的方法不在类中跳过
+                if(!in_array($k, $methods)) {
+                    continue;
+                }
+
+                if(is_array($v)) {
+                    foreach($v as $j) {
+                        if(!is_int($j)) continue;
+                        $result = Db::name('addon_hook')->where([
+                            'hook_name' => $k,
+                            'hook_type' => $j
+                        ])->find();
+                        if(is_null($result)) {
+                            Db::name('addon_hook')->save([
+                                'hook_name' => $k,
+                                'hook_type' => $j
+                            ]);
+                        }
+                    }
+                } else {
+                    if(!is_int($v)) continue;
+                    $data = [
+                        'hook_name' => $k,
+                        'hook_type' => $v
+                    ];
+                    $res = Db::name('addon_hook')->where($data)->find();
+    
+                    if(is_null($res)) {
+                        Db::name('addon_hook')->save($data);
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    // 移除管理位
+    protected function remove(array $hooks = []) {
+
+        if(!empty($hooks)) {
+            foreach($hooks as $k => $v) {
+                $res = Db::name('addon_hook')->where([
+                    'hook_name' => $k
+                ])->find();
+
+                if(!is_null($res)) {
+                    Db::name('addon_hook')->delete($res['id']);
+                }
+            }
+        }
+    }
+
 }

@@ -4,15 +4,31 @@ declare(strict_types=1);
 
 namespace taoser\addons;
 
-use app\BaseController;
 use think\App;
 use think\helper\Str;
 use think\facade\Lang;
 use think\facade\Config;
 use think\facade\View;
 
-class Controller extends BaseController
+class Controller
 {
+    /**
+     * @var Model
+     */
+    protected $model = null;
+
+    /**
+     * 无需登录及鉴权的方法
+     * @var array
+     */
+    protected $noNeedLogin = [];
+
+    /**
+     * 需要登录无需鉴权的方法
+     * @var array
+     */
+    protected $noNeedAuth = [];
+
     // app 容器
     protected $app;
     // 请求对象
@@ -44,7 +60,8 @@ class Controller extends BaseController
         $this->addon_info = "addon_{$this->name}_info";
         $this->view = clone View::engine('Think');
         $this->view->config([
-            'view_path' => $this->addon_path . 'view' . DIRECTORY_SEPARATOR,
+            'strip_space' => true, // 去除空格和换行
+            'view_path' => $this->addon_path . 'view' . DIRECTORY_SEPARATOR
         ]);
 
         // 控制器初始化
