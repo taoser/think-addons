@@ -24,7 +24,7 @@ define('DS', DIRECTORY_SEPARATOR);
 spl_autoload_register(function ($class) {
 
     $class = ltrim($class, '\\');
-
+    
     //$dir = App::getRootPath();
     $root_path = str_replace('\\','/', dirname(__DIR__));
     $dir = strstr($root_path, 'vendor', true);
@@ -323,4 +323,29 @@ if (!function_exists('get_addons_list')) {
         return $list;
     }
 
+}
+
+if (!function_exists('getAddonsConfig')) {
+    /**
+     * 获取插件配置
+     *
+     * @param string $name 插件名
+     * @param boolean $type 是否获取原始数据
+     * @return void
+     */
+    function getAddonsConfig(string $name, bool $type = false) {
+        $config = [];
+        $config_file = root_path() . 'addons' .  DIRECTORY_SEPARATOR . $name . DIRECTORY_SEPARATOR .  'config.php';
+        if (is_file($config_file)) {
+            $temp_arr = (array)include $config_file;
+            if ($type) {
+                return $temp_arr;
+            }
+            foreach ($temp_arr as $key => $value) {
+                $config[$key] = $value['value'];
+            }
+            unset($temp_arr);
+        }
+        return $config;
+    }
 }
