@@ -8,9 +8,15 @@ use think\App;
 use think\helper\Str;
 use think\facade\Config;
 use think\facade\View;
+<<<<<<< HEAD
 use taoler\com\Files;
 use think\facade\Cache;
 use think\facade\Db;
+=======
+use think\facade\Cache;
+use think\facade\Db;
+use think\facade\Template;
+>>>>>>> 2.0
 
 abstract class Addons
 {
@@ -41,7 +47,7 @@ abstract class Addons
         $this->app = $app;
         $this->request = $app->request;
         $this->name = $this->getName();
-        $this->addon_path = $app->addons->getAddonsPath() . $this->name . DIRECTORY_SEPARATOR;
+        $this->addon_path = $this->app->addons->getAddonsPath() . $this->name . DIRECTORY_SEPARATOR;
         $this->addon_config = "addon_{$this->name}_config";
         $this->addon_info = "addon_{$this->name}_info";
         // $this->taglib_pre_load = $this->getTagLib();
@@ -49,7 +55,13 @@ abstract class Addons
         $this->view = clone View::engine('Think');
         $this->view->config([
             'strip_space'   => true, // 去除空格和换行
+<<<<<<< HEAD
             'view_path' => $this->addon_path . 'view' . DIRECTORY_SEPARATOR,
+=======
+            // 'view_path'     => $this->addon_path . 'view' . DIRECTORY_SEPARATOR . 'plugin' . DIRECTORY_SEPARATOR,
+            'view_path'     => $this->addon_path . 'view' . DIRECTORY_SEPARATOR,
+            'view_dir_name' => 'view',
+>>>>>>> 2.0
             // 'taglib_pre_load'   => $this->taglib_pre_load
         ]);
 
@@ -131,6 +143,7 @@ abstract class Addons
         return $this;
     }
 
+<<<<<<< HEAD
     protected function getTagLib() {
         return Cache::remember('addon_taglib', function(){
             $tagsArr = []; 
@@ -146,6 +159,26 @@ abstract class Addons
             }
             return implode(',', $tagsArr);
         });
+=======
+    // 获取插件下标签 addons/taglib文件
+    protected function getTagLib() {
+        return Cache::remember('addon_taglib', function(){
+            $tagsArr = [];
+            $addonsPath = $this->app->addons->getAddonsPath();
+            
+            foreach (scandir($addonsPath) as $name) {
+                if (in_array($name, ['.', '..'])) continue;
+                $taglibDir = $addonsPath . $name . DIRECTORY_SEPARATOR . 'taglib';
+                if (!is_dir($taglibDir)) continue;
+                
+                foreach (glob($taglibDir . '/*.php') as $file) {
+                    $className = pathinfo($file, PATHINFO_FILENAME);
+                    $tagsArr[] = "\\addons\\{$name}\\taglib\\{$className}";
+                }
+            }
+            return implode(',', $tagsArr);
+        }, 3600); // 添加过期时间
+>>>>>>> 2.0
     }
 
     /**
@@ -164,7 +197,7 @@ abstract class Addons
         // 文件配置
         $info_file = $this->addon_path . 'info.ini';
         if (is_file($info_file)) {
-            $_info = parse_ini_file($info_file, true, INI_SCANNER_TYPED) ?: [];
+            $_info = parse_ini_file($info_file, true, INI_SCANNER_RAW) ?: [];
             $_info['url'] = addons_url();
             $info = array_merge($_info, $info);
         }
@@ -191,7 +224,12 @@ abstract class Addons
                 return $temp_arr;
             }
             foreach ($temp_arr as $key => $value) {
-                $config[$key] = $value['value'];
+                if(isset($value['value'])) {
+                    $config[$key] = $value['value'];
+                } else {
+                    $config[$key] = $value;
+                }
+                
             }
             unset($temp_arr);
         }
@@ -208,7 +246,7 @@ abstract class Addons
      */
     final public function setInfo($name = '', $value = [])
     {
-        if (empty($name)) {
+        if(empty($name)) {
             $name = $this->getName();
         }
         $info = $this->getInfo($name);
@@ -223,6 +261,7 @@ abstract class Addons
     //必须卸载插件方法
     abstract public function uninstall();
 
+<<<<<<< HEAD
     // 写入管理位
     protected function insert(array $hooks = []) {
 
@@ -238,16 +277,69 @@ abstract class Addons
                 }
             }
         }
+=======
+    // 在 Addons.php 中补充
+    abstract public function enabled();   // 启用插件
+
+    abstract public function disabled();  // 禁用插件
+
+    // 写入管理位
+    protected function insert(array $hooks = []) {
+
+        $methods = (array)get_class_methods("\\addons\\" . $this->name . "\\Plugin");
+        if(!empty($hooks)) {
+            foreach($hooks as $k => $v) {
+                // 添加的方法不在类中跳过
+                if(!in_array($k, $methods)) {
+                    continue;
+                }
+
+                if(is_array($v)) {
+                    foreach($v as $j) {
+                        if(!is_int($j)) continue;
+                        $result = Db::name('addon_hook')->where([
+                            'hook_name' => $k,
+                            'hook_type' => $j
+                        ])->find();
+                        if(is_null($result)) {
+                            Db::name('addon_hook')->save([
+                                'hook_name' => $k,
+                                'hook_type' => $j
+                            ]);
+                        }
+                    }
+                } else {
+                    if(!is_int($v)) continue;
+                    $data = [
+                        'hook_name' => $k,
+                        'hook_type' => $v
+                    ];
+                    $res = Db::name('addon_hook')->where($data)->find();
+    
+                    if(is_null($res)) {
+                        Db::name('addon_hook')->save($data);
+                    }
+                }
+            }
+        }
+        return true;
+>>>>>>> 2.0
     }
 
     // 移除管理位
     protected function remove(array $hooks = []) {
 
         if(!empty($hooks)) {
+<<<<<<< HEAD
             foreach($hooks as $v) {
                 $res = Db::name('addon_hook')->where([
                     'hook_name' => $v['hook_name'],
                     'hook_type' => $v['hook_type']
+=======
+            foreach($hooks as $k => $v) {
+                $res = Db::name('addon_hook')->where([
+                    'hook_name' => $k
+>>>>>>> 2.0
                 ])->find();
 
                 if(!is_null($res)) {

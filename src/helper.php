@@ -131,7 +131,11 @@ if (!function_exists('get_addons_class')) {
                 $namespace = '\\addons\\' . $name . '\\controller\\' . $class;
                 // 匹配空控制器
                 if (!class_exists($namespace)) {
+<<<<<<< HEAD
                     $namespace = '\\addons\\' . $name . '\\Controller\\' . config('route.empty_controller');
+=======
+                    $namespace = '\\addons\\' . $name . '\\controller\\' . config('route.empty_controller');
+>>>>>>> 2.0
                 }
                 break;
             default:
@@ -151,9 +155,10 @@ if (!function_exists('addons_url')) {
      * @param bool|string $domain 域名
      * @return bool|string
      */
-    function addons_url($url = '', $param = [], $suffix = true, $domain = false)
+    function addons_url($url = '', $param = [], $suffix = false, $domain = false)
     {
         $request = app('request');
+        
         if (empty($url)) {
             // 生成 url 模板变量
             $addons = $request->addon;
@@ -163,6 +168,7 @@ if (!function_exists('addons_url')) {
         } else {
             $url = Str::studly($url);
             $url = parse_url($url);
+            
             if (isset($url['scheme'])) {
                 $addons = strtolower($url['scheme']);
                 $controller = $url['host'];
@@ -182,7 +188,7 @@ if (!function_exists('addons_url')) {
             }
         }
 
-        return Route::buildUrl("@addons/{$addons}/{$controller}/{$action}", $param)->suffix($suffix)->domain($domain);
+        return Route::buildUrl("/app/{$addons}/{$controller}/{$action}", $param)->suffix($suffix)->domain($domain);
     }
 }
 
@@ -206,14 +212,16 @@ if (!function_exists('set_addons_info')) {
         if (!isset($array['name']) || !isset($array['title']) || !isset($array['version'])) {
             throw new Exception("Failed to write plugin config");
         }
-        $res = array();
+        $res = [];
         foreach ($array as $key => $val) {
             if (is_array($val)) {
                 $res[] = "[$key]";
                 foreach ($val as $k => $v)
-                    $res[] = "$k = " . (is_numeric($v) ? $v : $v);
-            } else
-                $res[] = "$key = " . (is_numeric($val) ? $val : $val);
+                    $res[] = "$k = " . (is_float($val) ? sprintf("%.1f",$val) : $v);
+            } else {
+                //$res[] = "$key = " . (is_numeric($val) ? $val : $val);
+                $res[] = "$key = " . (is_float($val) ? sprintf("%.1f",$val) : $val);
+            } 
         }
 
         if ($handle = fopen($file, 'w')) {
