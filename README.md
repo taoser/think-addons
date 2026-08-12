@@ -1,5 +1,5 @@
 # think-addons
-The ThinkPHP 8 Addons Package
+The ThinkPHP 8 Addons Package，基于thinkphp8的插件系统，支持全局中间件配置。
 
 ## 安装
 > composer require taoser/think-addons
@@ -112,6 +112,8 @@ class Plugin extends Addons	// 需继承think\Addons类
     {
 		// 调用钩子时候的参数信息
         print_r($param);
+        // 获取插件信息
+        print_r($this->getInfo());
 		// 当前插件的配置信息，配置信息存在当前目录的config.php文件中，见下方
         print_r($this->getConfig());
 		// 可以返回模板，模板文件默认读取的为插件目录中的文件。模板名不能为空！
@@ -157,7 +159,7 @@ test为插件名，Action为controller中的类名[多级控制器可以用.分�
 
 ### 创建插件的controller文件
 > 在test目录中创建controller目录，在controller目录中创建Index.php文件
-> controller类的用法与tp6中的controller一致
+> controller类的用法与tp8中的controller一致
 
 ```php
 <?php
@@ -277,5 +279,5 @@ www  WEB部署目录（或者子目录）
 
 
 基于zzstudio修改版think-addons
-The ThinkPHP 6 Addons Package
+The ThinkPHP 8 Addons Package
 感谢 zzstudio/think-addons 
