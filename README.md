@@ -232,12 +232,25 @@ function addons_url($url = '', $param = [], $suffix = true, $domain = false);
 ### 最终生成的目录结构为
 
 ```html
-www  WEB部署目录（或者子目录）
-├─addons           插件目录
-├─app           应用目录
-│  ├─controller      控制器目录
-│  ├─model           模型目录
-│  ├─ ...            更多类库目录
+www  WEB子目录）
+├─addons                    插件应用目录
+│  └─test                   插件目录
+│     ├─controller          控制器目录
+│     ├─lang                多语言目录
+│     ├─model               模型目录
+│     ├─route               路由目录
+│     ├─Plugin.php          入口文件
+│     ├─config.php          配置文件
+│     └─view                视图目录
+|       └─index             控制器模板目录
+|           └─index.html    钩子模板文件
+|       └─plugin            钩子模板目录
+│     └─info.ini            信息文件
+│
+├─app                    应用目录
+│  ├─controller          控制器目录
+│  ├─model               模型目录
+│  ├─ ...                更多类库目录
 │  │
 │  ├─common.php         公共函数文件
 │  └─event.php          事件定义文件
@@ -257,7 +270,7 @@ www  WEB部署目录（或者子目录）
 │  ├─trace.php          Trace配置
 │  └─view.php           视图配置
 │
-├─view            视图目录
+├─view                    视图目录
 ├─route                 路由定义目录
 │  ├─route.php          路由定义文件
 │  └─ ...   
@@ -277,7 +290,5 @@ www  WEB部署目录（或者子目录）
 ├─think                 命令行入口文件
 ```
 
-
-基于zzstudio修改版think-addons
 The ThinkPHP 8 Addons Package
-感谢 zzstudio/think-addons 
+感谢 zzstudio/think-addons 项目
