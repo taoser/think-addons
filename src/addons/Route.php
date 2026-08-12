@@ -37,34 +37,6 @@ class Route
         $controller = $request->route('controller', 'index');
         $action = $request->route('action', 'index') ?: 'index';
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-        $module_path  = $app->addons->getAddonsPath() . $addon . DIRECTORY_SEPARATOR;
-        
-        //注册路由配置
-        $addonsRouteConfig = [];
-        if (is_file($module_path. 'config' . DIRECTORY_SEPARATOR . 'route.php')) {
-            $addonsRouteConfig = include($module_path. 'config' . DIRECTORY_SEPARATOR . 'route.php');
-            $app->config->load($module_path. 'config' . DIRECTORY_SEPARATOR . 'route.php', pathinfo($module_path. 'config' . DIRECTORY_SEPARATOR . 'route.php', PATHINFO_FILENAME));
-        }
-        if (isset($addonsRouteConfig['url_route_must']) && $addonsRouteConfig['url_route_must']) {
-            throw new HttpException(400, lang("addon {$addon}：已开启强制路由"));
-        }
-=======
-        // $module_path  = $app->addons->getAddonsPath() . $addon . DIRECTORY_SEPARATOR;
-        // //注册路由配置
-        // $addonsRouteConfig = [];
-        // if (is_file($module_path. 'config' . DIRECTORY_SEPARATOR . 'route.php')) {
-        //     $addonsRouteConfig = include($module_path. 'config' . DIRECTORY_SEPARATOR . 'route.php');
-        //     $app->config->load($module_path. 'config' . DIRECTORY_SEPARATOR . 'route.php', pathinfo($module_path. 'config' . DIRECTORY_SEPARATOR . 'route.php', PATHINFO_FILENAME));
-        // }
-        // if (isset($addonsRouteConfig['url_route_must']) && $addonsRouteConfig['url_route_must']) {
-        //     throw new HttpException(400, lang("addon {$addon}：已开启强制路由"));
-        // }
->>>>>>> 2.0
-
-=======
->>>>>>> 3.0
         Event::trigger('addons_begin', $request);
 
         if (empty($addon) || empty($controller) || empty($action)) {
@@ -99,11 +71,7 @@ class Route
 
         // 生成控制器对象
         try {
-<<<<<<< HEAD
-            $instance = new $class($app);
-=======
             $instance = $app->make($class);
->>>>>>> 2.0
         } catch (\Exception $e) {
             throw new HttpException(404, lang('addon controller %s not found', [Str::studly($controller)]));
         }

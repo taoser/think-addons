@@ -8,15 +8,9 @@ use think\App;
 use think\helper\Str;
 use think\facade\Config;
 use think\facade\View;
-<<<<<<< HEAD
-use taoler\com\Files;
-use think\facade\Cache;
-use think\facade\Db;
-=======
 use think\facade\Cache;
 use think\facade\Db;
 use think\facade\Template;
->>>>>>> 2.0
 
 abstract class Addons
 {
@@ -55,18 +49,9 @@ abstract class Addons
         $this->view = clone View::engine('Think');
         $this->view->config([
             'strip_space'   => true, // 去除空格和换行
-<<<<<<< HEAD
-<<<<<<< HEAD
-            'view_path' => $this->addon_path . 'view' . DIRECTORY_SEPARATOR,
-=======
-            // 'view_path'     => $this->addon_path . 'view' . DIRECTORY_SEPARATOR . 'plugin' . DIRECTORY_SEPARATOR,
-            'view_path'     => $this->addon_path . 'view' . DIRECTORY_SEPARATOR,
-=======
             // 'view_path'     => $this->addonPath . 'view' . DIRECTORY_SEPARATOR . 'plugin' . DIRECTORY_SEPARATOR,
             'view_path'     => $this->addonPath . 'view' . DIRECTORY_SEPARATOR,
->>>>>>> 3.0
             'view_dir_name' => 'view',
->>>>>>> 2.0
             // 'taglib_pre_load'   => $this->taglib_pre_load
         ]);
 
@@ -148,23 +133,6 @@ abstract class Addons
         return $this;
     }
 
-<<<<<<< HEAD
-    protected function getTagLib() {
-        return Cache::remember('addon_taglib', function(){
-            $tagsArr = []; 
-            //获取插件下标签 addons/taglib文件
-            $localAddons = Files::getDirName('../addons/');
-            foreach($localAddons as $v) {
-                $dir = root_path() . 'addons'. DIRECTORY_SEPARATOR . $v . DIRECTORY_SEPARATOR .'taglib';
-                if(!file_exists($dir)) continue;
-                $addons_taglib = Files::getAllFile($dir);
-                foreach ($addons_taglib as $a) {
-                    $tagsArr[] = str_replace('/','\\',strstr(strstr($a, 'addons'), '.php', true));
-                }
-            }
-            return implode(',', $tagsArr);
-        });
-=======
     // 获取插件下标签 addons/taglib文件
     protected function getTagLib() {
         return Cache::remember('addon_taglib', function(){
@@ -183,7 +151,6 @@ abstract class Addons
             }
             return implode(',', $tagsArr);
         }, 3600); // 添加过期时间
->>>>>>> 2.0
     }
 
     /**
@@ -269,23 +236,6 @@ abstract class Addons
     //必须卸载插件方法
     abstract public function uninstall();
 
-<<<<<<< HEAD
-    // 写入管理位
-    protected function insert(array $hooks = []) {
-
-        if(!empty($hooks)) {
-            foreach($hooks as $v) {
-                $res = Db::name('addon_hook')->where([
-                    'hook_name' => $v['hook_name'],
-                    'hook_type' => $v['hook_type']
-                ])->find();
-
-                if(is_null($res)) {
-                    Db::name('addon_hook')->save($hooks);
-                }
-            }
-        }
-=======
     // 在 Addons.php 中补充
     abstract public function enabled();   // 启用插件
 
@@ -331,23 +281,15 @@ abstract class Addons
             }
         }
         return true;
->>>>>>> 2.0
     }
 
     // 移除管理位
     protected function remove(array $hooks = []) {
 
         if(!empty($hooks)) {
-<<<<<<< HEAD
-            foreach($hooks as $v) {
-                $res = Db::name('addon_hook')->where([
-                    'hook_name' => $v['hook_name'],
-                    'hook_type' => $v['hook_type']
-=======
             foreach($hooks as $k => $v) {
                 $res = Db::name('addon_hook')->where([
                     'hook_name' => $k
->>>>>>> 2.0
                 ])->find();
 
                 if(!is_null($res)) {
