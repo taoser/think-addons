@@ -381,8 +381,6 @@ class Service extends \think\Service
             return $config;
         });
 
-// dump($conf);
-
         Config::set($conf, 'addons');
         
     }
