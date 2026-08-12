@@ -38,6 +38,7 @@ class Route
         $action = $request->route('action', 'index') ?: 'index';
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         $module_path  = $app->addons->getAddonsPath() . $addon . DIRECTORY_SEPARATOR;
         
         //注册路由配置
@@ -62,6 +63,8 @@ class Route
         // }
 >>>>>>> 2.0
 
+=======
+>>>>>>> 3.0
         Event::trigger('addons_begin', $request);
 
         if (empty($addon) || empty($controller) || empty($action)) {
@@ -90,9 +93,9 @@ class Route
         }
 
         // 重写视图基础路径
-        $config = Config::get('view');
-        $config['view_path'] = $app->addons->getAddonsPath() . $addon . DIRECTORY_SEPARATOR . 'view' . DIRECTORY_SEPARATOR;
-        Config::set($config, 'view');
+        // $config = Config::get('view');
+        // $config['view_path'] = $app->addons->getAddonsPath() . $addon . DIRECTORY_SEPARATOR . 'view' . DIRECTORY_SEPARATOR;
+        // Config::set($config, 'view');
 
         // 生成控制器对象
         try {

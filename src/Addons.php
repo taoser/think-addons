@@ -27,13 +27,13 @@ abstract class Addons
     // 当前插件标识
     protected $name;
     // 插件路径
-    protected $addon_path;
+    protected $addonPath;
     // 视图模型
     protected $view;
     // 插件配置
-    protected $addon_config;
+    protected $addonConfig;
     // 插件信息
-    protected $addon_info;
+    protected $addonInfo;
     // 预先加载的标签库
     protected $taglib_pre_load = '';
 
@@ -47,19 +47,24 @@ abstract class Addons
         $this->app = $app;
         $this->request = $app->request;
         $this->name = $this->getName();
-        $this->addon_path = $this->app->addons->getAddonsPath() . $this->name . DIRECTORY_SEPARATOR;
-        $this->addon_config = "addon_{$this->name}_config";
-        $this->addon_info = "addon_{$this->name}_info";
+        $this->addonPath = $this->app->addons->getAddonsPath() . $this->name . DIRECTORY_SEPARATOR;
+        $this->addonConfig = "addon_{$this->name}_config";
+        $this->addonInfo = "addon_{$this->name}_info";
         // $this->taglib_pre_load = $this->getTagLib();
         // $this->view = clone View::engine('Taoler');
         $this->view = clone View::engine('Think');
         $this->view->config([
             'strip_space'   => true, // 去除空格和换行
 <<<<<<< HEAD
+<<<<<<< HEAD
             'view_path' => $this->addon_path . 'view' . DIRECTORY_SEPARATOR,
 =======
             // 'view_path'     => $this->addon_path . 'view' . DIRECTORY_SEPARATOR . 'plugin' . DIRECTORY_SEPARATOR,
             'view_path'     => $this->addon_path . 'view' . DIRECTORY_SEPARATOR,
+=======
+            // 'view_path'     => $this->addonPath . 'view' . DIRECTORY_SEPARATOR . 'plugin' . DIRECTORY_SEPARATOR,
+            'view_path'     => $this->addonPath . 'view' . DIRECTORY_SEPARATOR,
+>>>>>>> 3.0
             'view_dir_name' => 'view',
 >>>>>>> 2.0
             // 'taglib_pre_load'   => $this->taglib_pre_load
@@ -187,7 +192,7 @@ abstract class Addons
      */
     final public function getInfo()
     {
-        $info = Config::get($this->addon_info, []);
+        $info = Config::get($this->addonInfo, []);
         if ($info) {
             return $info;
         }
@@ -195,13 +200,13 @@ abstract class Addons
         // 文件属性
         $info = $this->info ?? [];
         // 文件配置
-        $info_file = $this->addon_path . 'info.ini';
+        $info_file = $this->addonPath . 'info.ini';
         if (is_file($info_file)) {
             $_info = parse_ini_file($info_file, true, INI_SCANNER_RAW) ?: [];
             $_info['url'] = addons_url();
             $info = array_merge($_info, $info);
         }
-        Config::set($info, $this->addon_info);
+        Config::set($info, $this->addonInfo);
 
         return isset($info) ? $info : [];
     }
@@ -213,16 +218,17 @@ abstract class Addons
      */
     final public function getConfig($type = false)
     {
-        $config = Config::get($this->addon_config, []);
+        $config = Config::get($this->addonConfig, []);
         if ($config) {
             return $config;
         }
-        $config_file = $this->addon_path . 'config.php';
+        $config_file = $this->addonPath . 'config.php';
         if (is_file($config_file)) {
-            $temp_arr = (array)include $config_file;
+            $temp_arr = (array) include $config_file;
             if ($type) {
                 return $temp_arr;
             }
+
             foreach ($temp_arr as $key => $value) {
                 if(isset($value['value'])) {
                     $config[$key] = $value['value'];
@@ -231,9 +237,11 @@ abstract class Addons
                 }
                 
             }
+
             unset($temp_arr);
         }
-        Config::set($config, $this->addon_config);
+
+        Config::set($config, $this->addonConfig);
 
         return $config;
     }
