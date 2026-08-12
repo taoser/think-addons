@@ -1,5 +1,5 @@
 # think-addons
-The ThinkPHP 8 Addons Package，基于thinkphp8的插件系统，支持全局中间件配置。
+2026, Addons v3.0 is the plugin system for ThinkPHP 8, 用于ThinkPHP8的插件系统，支持中间件、事件、命令、视图等。
 
 ## 安装
 > composer require taoser/think-addons
