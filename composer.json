@@ -1,6 +1,6 @@
 {
     "name": "taoser/think-addons",
-    "description": "Addons for The ThinkPHP8 Addons Package, v3.0.0, 用于ThinkPHP8的插件系统，支持中间件、事件、命令、视图等",
+    "description": "2026,Addons v3.0 is the plugin system for ThinkPHP 8, 用于ThinkPHP8的插件系统，支持中间件、事件、命令、视图等",
     "license": "mit",
     "authors": [
         {
