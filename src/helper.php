@@ -555,32 +555,6 @@ if (!function_exists('get_addons_list')) {
 
 }
 
-if (!function_exists('getAddonsConfig')) {
-    /**
-     * 获取插件配置
-     *
-     * @param string $name 插件名
-     * @param boolean $type 是否获取原始数据
-     * @return array
-     */
-    function getAddonsConfig(string $name, bool $type = false): array
-    {
-        $config = [];
-        $config_file = addons_path() . $name . DIRECTORY_SEPARATOR .  'config.php';
-        if (is_file($config_file)) {
-            $temp_arr = (array)include $config_file;
-            if ($type) {
-                return $temp_arr;
-            }
-            foreach ($temp_arr as $key => $value) {
-                $config[$key] = $value['value'];
-            }
-            unset($temp_arr);
-        }
-        return $config;
-    }
-}
-
 if (!function_exists('addons_path')) {
     /**
      * 获取插件目录路径
