@@ -1,5 +1,5 @@
 # think-addons
-2026, Addons v3.0 is the plugin system for ThinkPHP 8, 用于ThinkPHP8的插件系统，支持中间件、事件、命令、视图等。
+The ThinkPHP 8 Addons Package
 
 ## 安装
 > composer require taoser/think-addons
@@ -112,8 +112,6 @@ class Plugin extends Addons	// 需继承think\Addons类
     {
 		// 调用钩子时候的参数信息
         print_r($param);
-        // 获取插件信息
-        print_r($this->getInfo());
 		// 当前插件的配置信息，配置信息存在当前目录的config.php文件中，见下方
         print_r($this->getConfig());
 		// 可以返回模板，模板文件默认读取的为插件目录中的文件。模板名不能为空！
@@ -159,7 +157,7 @@ test为插件名，Action为controller中的类名[多级控制器可以用.分�
 
 ### 创建插件的controller文件
 > 在test目录中创建controller目录，在controller目录中创建Index.php文件
-> controller类的用法与tp8中的controller一致
+> controller类的用法与tp6中的controller一致
 
 ```php
 <?php
@@ -232,25 +230,12 @@ function addons_url($url = '', $param = [], $suffix = true, $domain = false);
 ### 最终生成的目录结构为
 
 ```html
-www  WEB子目录）
-├─addons                    插件应用目录
-│  └─test                   插件目录
-│     ├─controller          控制器目录
-│     ├─lang                多语言目录
-│     ├─model               模型目录
-│     ├─route               路由目录
-│     ├─Plugin.php          入口文件
-│     ├─config.php          配置文件
-│     └─view                视图目录
-|       └─index             控制器模板目录
-|           └─index.html    钩子模板文件
-|       └─plugin            钩子模板目录
-│     └─info.ini            信息文件
-│
-├─app                    应用目录
-│  ├─controller          控制器目录
-│  ├─model               模型目录
-│  ├─ ...                更多类库目录
+www  WEB部署目录（或者子目录）
+├─addons           插件目录
+├─app           应用目录
+│  ├─controller      控制器目录
+│  ├─model           模型目录
+│  ├─ ...            更多类库目录
 │  │
 │  ├─common.php         公共函数文件
 │  └─event.php          事件定义文件
@@ -270,7 +255,7 @@ www  WEB子目录）
 │  ├─trace.php          Trace配置
 │  └─view.php           视图配置
 │
-├─view                    视图目录
+├─view            视图目录
 ├─route                 路由定义目录
 │  ├─route.php          路由定义文件
 │  └─ ...   
@@ -290,5 +275,7 @@ www  WEB子目录）
 ├─think                 命令行入口文件
 ```
 
-The ThinkPHP 8 Addons Package
-感谢 zzstudio/think-addons 项目
+
+基于zzstudio修改版think-addons
+The ThinkPHP 6 Addons Package
+感谢 zzstudio/think-addons 
