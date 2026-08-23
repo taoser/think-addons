@@ -47,9 +47,9 @@ class Controller
     // 视图模型
     protected $view;
     // 插件配置
-    protected $addonConfig = '';
+    protected $addon_config = '';
     // 插件信息
-    protected $addonInfo = '';
+    protected $addon_info = '';
 
 
     /**
@@ -63,8 +63,8 @@ class Controller
         $this->request = $app->request;
         $this->name = $this->getName();
         $this->addonPath = $app->addons->getAddonsPath() . $this->name . DIRECTORY_SEPARATOR;
-        $this->addonConfig = "addon_{$this->name}_config";
-        $this->addonInfo = "addon_{$this->name}_info";
+        $this->addon_config = "addon_{$this->name}_config";
+        $this->addon_info = "addon_{$this->name}_info";
         $this->view = clone View::engine('Think');
         $this->view->config([
             'strip_space' => true, // 去除空格和换行

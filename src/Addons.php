@@ -49,8 +49,8 @@ abstract class Addons
         $this->view = clone View::engine('Think');
         $this->view->config([
             'strip_space'   => true, // 去除空格和换行
-            // 'view_path'     => $this->addonPath . 'view' . DIRECTORY_SEPARATOR . 'plugin' . DIRECTORY_SEPARATOR,
-            'view_path'     => $this->addonPath . 'view' . DIRECTORY_SEPARATOR,
+            'view_path'     => $this->addonPath . 'view' . DIRECTORY_SEPARATOR . 'plugin' . DIRECTORY_SEPARATOR,
+            // 'view_path'     => $this->addonPath . 'view' . DIRECTORY_SEPARATOR,
             'view_dir_name' => 'view',
             // 'taglib_pre_load'   => $this->taglib_pre_load
         ]);
@@ -155,79 +155,118 @@ abstract class Addons
 
     /**
      * 插件基础信息
+     * @param string|null $name 插件名
      * @return array
      */
-    final public function getInfo()
+    final public function getInfo(?string $name = '')
     {
-        $info = Config::get($this->addonInfo, []);
-        if ($info) {
+        if(empty($name)) {
+            $name = $this->getName();
+        }
+
+        $name = trim($name);
+        if (empty($name)) {
+            throw new \InvalidArgumentException('插件名称不能为空');
+        }
+
+        $configName = "addon_{$name}_info";
+        //优先读取内存配置，没有就读ini文件
+        $info = Config::get($configName, []);
+        if (!empty($info)) {
             return $info;
         }
 
-        // 文件属性
-        $info = $this->info ?? [];
         // 文件配置
-        $info_file = $this->addonPath . 'info.ini';
-        if (is_file($info_file)) {
-            $_info = parse_ini_file($info_file, true, INI_SCANNER_RAW) ?: [];
-            $_info['url'] = addons_url();
-            $info = array_merge($_info, $info);
+        $iniFile = addons_path() . $name . DIRECTORY_SEPARATOR . 'info.ini';
+        if (!file_exists($iniFile)) {
+            return [];
         }
-        Config::set($info, $this->addonInfo);
+
+        $_info = parse_ini_file($iniFile, true, INI_SCANNER_RAW) ?: [];
+        $_info['url'] = addons_url();
+
+        $info = array_merge($_info, $info);
+        Config::set($info, $configName);
 
         return isset($info) ? $info : [];
     }
 
     /**
-     * 获取配置信息
-     * @param bool $type 是否获取完整配置
-     * @return array|mixed
-     */
-    final public function getConfig($type = false)
-    {
-        $config = Config::get($this->addonConfig, []);
-        if ($config) {
-            return $config;
-        }
-        $config_file = $this->addonPath . 'config.php';
-        if (is_file($config_file)) {
-            $temp_arr = (array) include $config_file;
-            if ($type) {
-                return $temp_arr;
-            }
-
-            foreach ($temp_arr as $key => $value) {
-                if(isset($value['value'])) {
-                    $config[$key] = $value['value'];
-                } else {
-                    $config[$key] = $value;
-                }
-                
-            }
-
-            unset($temp_arr);
-        }
-
-        Config::set($config, $this->addonConfig);
-
-        return $config;
-    }
-	
-	   /**
      * 设置插件信息数据
-     * @param $name
-     * @param array $value
+     * @param array $value 插件信息
+     * @param string|null $name 插件名
      * @return array
      */
-    final public function setInfo($name = '', $value = [])
+    final public function setInfo(array $value, ?string $name = ''): array
     {
         if(empty($name)) {
             $name = $this->getName();
         }
+
+        $name = trim($name);
+        if (empty($name)) {
+            throw new \InvalidArgumentException('插件名称不能为空');
+        }
+
         $info = $this->getInfo($name);
         $info = array_merge($info, $value);
-        Config::set($info,$name);
+        //校验必填字段
+        if (!isset($info['name'], $info['title'], $info['version'])) {
+            throw new \InvalidArgumentException("插件信息缺少必填字段[name,title,version]");
+        }
+
+        $configKey = "addon_{$name}_info";
+        Config::set($info, $configKey);
+
         return $info;
+    }
+
+    /**
+     * 获取配置信息
+     * @param bool $type 是否获取完整配置
+     * @return array
+     */
+    final public function getConfig(bool $type = false): array
+    {
+        $config = Config::get($this->addonConfig, []);
+        if (!empty($config)) {
+            return $config;
+        }
+
+        $configFile = $this->addonPath . 'config.php';
+        if (!is_file($configFile)) {
+            return [];
+        }
+
+        try {
+            $tempArr = (array)(include $configFile);
+        } catch (\Throwable $e) {
+            // config.php语法错误直接返回空数组
+            return [];
+        }
+
+        // 清除opcache，防止读取php缓存
+        if (function_exists('opcache_invalidate')) {
+            opcache_invalidate($configFile, true);
+        }
+
+        if ($type) {
+            $result = $tempArr;
+        } else {
+            $result = [];
+            foreach ($tempArr as $key => $item) {
+                if (is_array($item) && isset($item['value'])) {
+                    $result[$key] = $item['value'];
+                } else {
+                    $result[$key] = $item;
+                }
+            }
+        }
+
+        // 写入进程内存缓存
+        Config::set($result, $this->addonConfig);
+
+        return $result;
     }
 
     //必须实现安装
